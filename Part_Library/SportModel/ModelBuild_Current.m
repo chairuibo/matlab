@@ -3,7 +3,6 @@ function model = ModelBuild_Current
 %           [ 0  1   0  ]       [ 0 ]           [ 0 ]
 %  x(k+1/k)=|    0   1  | x(k)+ | 0 |alpha(k) + | 0 |w(k+1)
 %           [      -alpha]      [ 1 ]           [ 1 ]
-
 model.T = 1;
 model.sigma_v = 0.5;
 model.D= diag(1);  
