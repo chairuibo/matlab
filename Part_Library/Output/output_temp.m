@@ -1,4 +1,4 @@
-function out = output_work(index,model,truth,meas,est)
+function out = output_temp(index,model,truth,meas,est)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %程序说明：  仿真结果输出
 %参数说明   index 图表序号
@@ -33,39 +33,28 @@ function out = output_work(index,model,truth,meas,est)
         vel_est_y(i) =est{i}(5);
         acc_est_y(i) =est{i}(6);
     end
-%     TFPos = pos_est_x;
-%     TFPos(3,:) = pos_est_y;
-    
+
     %%位置估计比较
     figure(index);
     out=index;
+    title('Position picture');
     posErr_obv1_x = pos_obv1_x-pos_truth_x;
     posErr_est_x = pos_est_x-pos_truth_x;
-    subplot(211);
+    subplot(221);
     plot(tick,pos_truth_x,'r',tick,pos_obv1_x,'g',tick,pos_est_x,'k');
     legend('位置真值','量测值','估计值');
-    xlabel('时间 t/s');
-    ylabel('距离x /m');
-    subplot(212);
+    subplot(223);
     plot(tick,posErr_est_x(1,:),'r',tick,posErr_obv1_x(1,:),'b');
-    legend('估计误差','雷达误差');
-    xlabel('时间 t/s');
-    ylabel('误差 /m');
+    legend('估计误差','传感器1误差');
     
-    figure(index+1);
-    out=index+1;
     posErr_obv1_y = pos_obv1_y-pos_truth_y;
     posErr_est_y = pos_est_y-pos_truth_y;
-    subplot(211);
+    subplot(222);
     plot(tick,pos_truth_y,'r',tick,pos_obv1_y,'g',tick,pos_est_y,'k');
     legend('位置真值','量测值','估计值');
-    xlabel('时间t /s');
-    ylabel('距离z /m');
-    subplot(212);
+    subplot(224);
     plot(tick,posErr_est_y(1,:),'r',tick,posErr_obv1_y(1,:),'b');
-    legend('估计误差','雷达误差');
-    xlabel('时间 t/s');
-    ylabel('误差 /m');
+    legend('估计误差','传感器1误差');
 
     %%速度估计比较
 %     figure(i+1);
