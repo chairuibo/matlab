@@ -1,23 +1,27 @@
-function est_x_update= Filter_Kalman(model,meas)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%程序说明   基本卡尔曼滤波方程
-%参数说明   model  运动模型
+function est_x_update = Kalman_Filter(model,meas)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%程序说明:基本卡尔曼滤波方程
+%参数说明:model  运动模型
 %           measure_value 所有传感器的量测数据
-%版本说明   1.0 （2019-12-25 CRB）    建立文件
-%          1.1  (2019-12-26 CRB)     添加更新和预测函数，调整函数结构
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%版本说明:1.0 （2019-12-25 CRB）建立文件
+%        1.1  (2019-12-26 CRB) 添加更新和预测函数，调整函数结构
+%        1.2  (2019-12-29 CRB) 操作单元将矩阵元素改为胞组
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    L = meas.L;
+    est_x_update = cell(1,L+1);  %转换矩阵方便
+    P_update = cell(1,L+1);
+    est_x_update{1}= model.x0;
+    P_update{1}= model.p0.^2;
 
-    est_x_update(:,1)= model.x0;
-    P_update(:,:,1)= model.p0.^2;
-
-    for k=1:meas.K
-         [x_predict,P_predict] = predict_multiple(model,est_x_update(:,k),P_update(:,:,k));    
+    for k=1:L
+         [x_predict,P_predict] = predict_multiple(model,est_x_update{k},P_update{k});    
          [est_temp,P_temp] = update_multiple(meas.Z{k},model,x_predict,P_predict);
-         est_x_update(:,k+1)=est_temp;
-         P_update(:,:,k+1)=P_temp;
+         est_x_update{k+1}=est_temp;
+         P_update{k+1}=P_temp;
     end 
     %估计出的数值为estimate_value的第二列到最后一列，第一列为初始数据
-    est_x_update=est_x_update(:,2:k+1);
+    est_x_update=est_x_update(2:k+1);
 end
 
 %Kalman predict

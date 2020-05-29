@@ -1,11 +1,11 @@
-function [ estimate_value ] = Kalman_CentralizedFusionSequent(model,measure_value,sensor_count)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [ estimate_value ] = EstiFusion_CentralizedSequent(model,measure_value,sensor_count)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %程序说明   集中式融合系统，序贯滤波程序
 %参数说明   model  运动模型
 %           measure_value 所有传感器的量测数据
 %           sensor_count  传感器数量
 %版本说明   1.0 （2019-12-26 CRB）    建立文件
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     %初始化数据
     count = sensor_count;
@@ -15,6 +15,8 @@ function [ estimate_value ] = Kalman_CentralizedFusionSequent(model,measure_valu
     model_H = cell(count,1);
     zlength = measure_value(1,1).K;
     measure_Z = cell(zlength,1);
+    
+    
     for i = 1:count
         model_R{i} = model(i,1).R;
         model_H{i} = model(i,1).H;
@@ -23,7 +25,7 @@ function [ estimate_value ] = Kalman_CentralizedFusionSequent(model,measure_valu
 %             measure_Z{j,i} =[measure_Z{j,i} measure_value(j,1).Z{j}];
         end
     end
-%%%%滤波主程序  
+%%%%%滤波主程序  
     for k=1:zlength
          [x_predict,P_predict] = Predict_multiple(model(1,:),est_x_update(:,k),P_update(:,:,k));    
          [est_temp,P_temp] = update_multiple(measure_Z{k},model_R,model_H,x_predict,P_predict,count);
