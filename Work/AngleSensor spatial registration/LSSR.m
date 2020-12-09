@@ -2,7 +2,7 @@
 % 程序名称：空间配准程序，样本生成函数target6_2.m
 % 说    明：空中站有角度误差和位置误差
 %           空中站在移动
-%           添加采用奇异值分解法
+%           添加采用奇异值分解法 最小二乘法
 % 版    本：第6.13版
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 close all
@@ -10,23 +10,16 @@ clear
 clc
 
 %% 载入数据
-sensorRealPos = load('Data/SensorRealPos6_2.mat','SensorRealPos');
+sensorRealPos = load('Data/SensorRealPos.mat','SensorRealPos');
 sensorRealPos = sensorRealPos.SensorRealPos;
-sensorMeasPos = load('Data/SensorMeasPos6_2.mat','SensorMeasPos');
+sensorMeasPos = load('Data/SensorMeasPos.mat','SensorMeasPos');
 sensorMeasPos = sensorMeasPos.SensorMeasPos;
-realData = load('Data/TargetRealPos6_2.mat');
+realData = load('Data/TargetRealPos.mat');
 realData = realData.realPos;
-measData = load('Data/TargetMeasurePos6_2.mat');
+measData = load('Data/TargetMeasurePos.mat');
 measData = measData.measPos;
-ErrData = load('Data/TargetMeasureErr6_2.mat');
+ErrData = load('Data/TargetMeasureErr.mat');
 ErrData = ErrData.ErrData;
-
-ObvX_A = 1000;      %空中站1 X轴位置
-ObvY_A = 10000;     %空中站1 Y轴位置
-ObvX_B = 10000;     %空中站2 X轴位置
-ObvY_B = 5000;      %空中站2 Y轴位置
-ObvX_C = 3000;      %空中站2 X轴位置
-ObvY_C = 4000;      %空中站2 Y轴位置
 
 L = 1000;
 %% 数据
@@ -100,23 +93,23 @@ for i=1:L
     % 计算误差值
     AngleErr(:,i+1) = V*S*U'*H'*Z;
 end
-AngleErr(2,:) = -AngleErr(2,:);
+
 %% 利用估计得到的空中站位置对目标进行估计
 Angle_Err = num2cell(AngleErr(:,2:L+1),[1,L]);
-meas_B.Z = num2cell(measData(1:3,:),[1,L]);
-meas_B.L = L;
-meas_B.AngleErr= Angle_Err;
-meas_B.SensorPos = num2cell(sensorMeasPos,[1,L]);
-modelB.x0 =[5000;0;0;7500;0;0];
-modelB.p0 =diag([5000,50,5,5000,50,5]);
+Meas_B.Z = num2cell(measData(1:3,:),[1,L]);
+Meas_B.L = L;
+Meas_B.AngleErr= Angle_Err;
+Meas_B.SensorPos = num2cell(sensorMeasPos,[1,L]);
+ModelB.x0 =[5000;0;0;7500;0;0];
+ModelB.p0 =diag([5000,50,5,5000,50,5]);
 B= [(0.1^3)/6; (0.1^2)/2; 0.1]; 
 B = [B           zeros(3,1)   
      zeros(3,1)  B];
-modelB.Q = 5.3^2*(B*B');%5.3 0.1
-modelB.R = diag([0.01/57.3,0.01/57.3,0.01/57.3].^2);
+ModelB.Q = 5.3^2*(B*B');%5.3 0.1
+ModelB.R = diag([0.01/57.3,0.01/57.3,0.01/57.3].^2);
 X_fun = @XFun5_2;
 Z_fun = @ZFun10;
-BasePos_Btemp = Kalman_CKF_10(modelB,meas_B,X_fun,Z_fun);
+BasePos_Btemp = Kalman_CKF_10(ModelB,Meas_B,X_fun,Z_fun);
 BasePos_B = cell2mat(BasePos_Btemp.X);
 
 %% 结果输出

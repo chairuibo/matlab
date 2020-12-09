@@ -17,7 +17,7 @@ function z = ZFun10(xTemp,AngleErr,SensorPos)
     A2 = AngleErr(2,1);
     A3 = AngleErr(3,1);
     
-    z(1,:) = atan2(x-ObvX_A, y-ObvY_A)+A1;      %空中站1对目标的角度观测
-    z(2,:) = atan2(ObvX_B-x, ObvY_B-y)+A2;      %空中站2对目标的角度观测
-    z(3,:) = atan2(x-ObvX_C, y-ObvY_C)+A3;      %空中站3对目标的角度观测
+    z(1,:) = atan((x-ObvX_A)./(y-ObvY_A))+A1;      %空中站1对目标的角度观测
+    z(2,:) = atan((x-ObvX_B)./(y-ObvY_B))+A2;      %空中站2对目标的角度观测
+    z(3,:) = atan((x-ObvX_C)./(y-ObvY_C))+A3;      %空中站3对目标的角度观测
 end
