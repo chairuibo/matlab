@@ -1,4 +1,4 @@
-function ExtimateValue = EstiFusion_IMMModel_00(IMMmodel,meas,others)
+function ExtimateValue = EstiFusion_IMMModel(IMMmodel,meas,others)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %函数名称：model = IMMModel(time,dim,x0,w_precision)
 %程序说明：用IMM交互式模型滤波，对单个观测结果用多个模型滤波，滤波方法可修改。
@@ -10,7 +10,8 @@ function ExtimateValue = EstiFusion_IMMModel_00(IMMmodel,meas,others)
 % 传感器的数据融合，也可以根据需要用多个模型和多个传感器的数据进行融合。
 %输入参数说明：1、IMMmodel IMM模型及其相关参数
 %                   IMMmodel.pai = 模型转移Markov链;
-%                   IMMmodel.U0 = 模型概率;
+%                   IMMmodel.U0 = 模型概率;为后续画图方便选用列向量，
+%                               程序中计算按原来的行向量处理，存储用列向量
 %                   IMMmodel.count模型集中模型数量
 %             2、LocalEstiData 子模型的滤波数据
 %                   LocalEstiData.ModelData(i).X 子模型的滤波结果
@@ -26,7 +27,7 @@ function ExtimateValue = EstiFusion_IMMModel_00(IMMmodel,meas,others)
 
     % 转移参数
     Pai = IMMmodel.pai;
-    U = IMMmodel.U0;
+    U = IMMmodel.U0;        %为后续画图方便选用列向量，程序中计算按原来的行向量处理，存储用列向量
     Count = IMMmodel.count;
     L = meas.L;
     Z = meas.Z;
@@ -48,14 +49,14 @@ function ExtimateValue = EstiFusion_IMMModel_00(IMMmodel,meas,others)
     %% 滤波
     for k=1:L
         % 混合概率计算 
-        C_ = Pai'*U; % nx1矩阵
-        U = (1./C_)'.*Pai.*U;  
+        C_ = U'*Pai; % 1 x n矩阵
+        P_transmit = 1./C_.*Pai.*U;  
         
         % 混合估计
         for j = 1:Count     %重初始化的状态混合估计
             Est_mixed{j} = 0;
             for i = 1:Count
-                Est_mixed{j} = Est_mixed{j}+Est_temp{i}*U(i,j);              
+                Est_mixed{j} = Est_mixed{j}+Est_temp{i}*P_transmit(i,j);              
             end
         end
 
@@ -63,22 +64,22 @@ function ExtimateValue = EstiFusion_IMMModel_00(IMMmodel,meas,others)
             Est_P_mixed{j} = 0;
             for i = 1:Count
                 Xmixed_err = Est_temp{i}-Est_mixed{j};
-                Est_P_mixed{j} = Est_P_mixed{j} +(Est_P_temp{i}+Xmixed_err*Xmixed_err')*U(i,j);
+                Est_P_mixed{j} = Est_P_mixed{j} +(Est_P_temp{i}+Xmixed_err*Xmixed_err')*P_transmit(i,j);
             end
         end
         % 模型条件滤波
         for i=1:Count
             % 给滤波方法传上一时刻的滤波结果
             other.count =i;
-            Model{i}.x0 = Est_temp{i};
-            Model{i}.p0 = Est_P_temp{i};
+            Model{i}.x0 = Est_mixed{i};
+            Model{i}.p0 = Est_P_mixed{i};
             % 使用各模型滤波（可替换成其他滤波方法，需要在各个方法中加入似然函数的公式，具体参考measure_update函数中） 
             [Est_temp{i},Est_P_temp{i},Like(i,1)] = Kalman_CKF(Model{i},Z{k}(1:3),X_fun,Z_fun,other);
         end
 
         % 模型概率更新
         C = C_'*Like;   
-        U = Like.*C_/C; %模型匹配概率
+        U = Like.*C_'/C; %模型匹配概率
         
         % 估计融合
         Est_x = cell2mat(Est_temp)*U;
